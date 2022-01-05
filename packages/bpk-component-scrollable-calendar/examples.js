@@ -25,6 +25,9 @@ import {
   DateUtils,
   CustomPropTypes,
   CALENDAR_SELECTION_TYPE,
+  BpkCalendarGridHeader,
+  withCalendarState,
+  composeCalendar,
 } from 'bpk-component-calendar';
 
 import {
@@ -40,11 +43,20 @@ import {
   weekDaysJapanese,
 } from './test-utils';
 
-import BpkScrollableCalendar, {
+import {
   BpkScrollableCalendarDate,
   BpkScrollableCalendarGrid,
   BpkScrollableCalendarGridList,
 } from './index';
+
+const ScrollableCalendarOutsideRender = withCalendarState(
+  composeCalendar(
+    null,
+    BpkCalendarGridHeader,
+    BpkScrollableCalendarGridList,
+    BpkScrollableCalendarDate,
+  ),
+);
 
 export default class ScrollableCal extends Component {
   constructor(props) {
@@ -69,8 +81,64 @@ export default class ScrollableCal extends Component {
   }
 
   render() {
+    const ComposedCalendarDate = props => (
+      // Sometimes we need use some props used in our composed calendar date, then it will cause problems.
+      <div>
+        <BpkScrollableCalendarDate {...props} />
+        <span>{this.props.outsideRender}</span>
+      </div>
+    );
+    const ScrollableCalendarInsideRender = withCalendarState(
+      composeCalendar(
+        null,
+        BpkCalendarGridHeader,
+        BpkScrollableCalendarGridList,
+        ComposedCalendarDate,
+      ),
+    );
+    if (this.props.outsideRender) {
+      return (
+        <ScrollableCalendarOutsideRender
+          id="calendar"
+          {...this.props}
+          onDateSelect={(startDate, endDate = null) => {
+            if (this.props.selectionConfiguration.type === 'range') {
+              if (startDate && !endDate) {
+                this.setState({
+                  selectionConfiguration: {
+                    type: this.props.selectionConfiguration.type,
+                    startDate,
+                    endDate: null,
+                  },
+                });
+                action('Selected day')(startDate);
+              }
+              if (startDate && endDate) {
+                this.setState({
+                  selectionConfiguration: {
+                    type: this.props.selectionConfiguration.type,
+                    startDate,
+                    endDate,
+                  },
+                });
+                action('Selected end day')(endDate);
+              }
+            } else {
+              this.setState({
+                selectionConfiguration: {
+                  type: this.props.selectionConfiguration.type,
+                  date: startDate,
+                },
+              });
+              action('Selected day')(startDate);
+            }
+          }}
+          selectionConfiguration={this.state.selectionConfiguration}
+        />
+      );
+    }
     return (
-      <BpkScrollableCalendar
+      <ScrollableCalendarInsideRender
         id="calendar"
         {...this.props}
         onDateSelect={(startDate, endDate = null) => {
@@ -112,11 +180,13 @@ export default class ScrollableCal extends Component {
 }
 ScrollableCal.propTypes = {
   selectTodaysDate: PropTypes.bool,
+  outsideRender: PropTypes.bool,
   selectionConfiguration: CustomPropTypes.SelectionConfiguration,
 };
 
 ScrollableCal.defaultProps = {
   selectTodaysDate: true,
+  outsideRender: true,
   selectionConfiguration: {
     type: CALENDAR_SELECTION_TYPE.single,
     date: new Date(),
@@ -137,7 +207,7 @@ const DefaultExample = () => (
   />
 );
 
-const RangeExample = () => (
+const RangeExampleOutsideRender = () => (
   <ScrollableCal
     weekStartsOn={1}
     daysOfWeek={weekDays}
@@ -153,6 +223,26 @@ const RangeExample = () => (
       startDate: new Date(2020, 3, 7),
       endDate: new Date(2020, 3, 15),
     }}
+  />
+);
+
+const RangeExampleInsideRender = () => (
+  <ScrollableCal
+    weekStartsOn={1}
+    daysOfWeek={weekDays}
+    formatMonth={formatMonth}
+    formatDateFull={formatDateFull}
+    DateComponent={BpkScrollableCalendarDate}
+    markToday={false}
+    selectTodaysDate={false}
+    minDate={new Date(2020, 3, 1)}
+    maxDate={new Date(2020, 6, 1)}
+    selectionConfiguration={{
+      type: 'range',
+      startDate: new Date(2020, 3, 7),
+      endDate: new Date(2020, 3, 15),
+    }}
+    outsideRender={false}
   />
 );
 
@@ -364,7 +454,8 @@ const PastCalendar = () => (
 
 export {
   DefaultExample,
-  RangeExample,
+  RangeExampleOutsideRender,
+  RangeExampleInsideRender,
   SplitWeekRangeExample,
   WeekStartsOnSix,
   WithFocusedDate,

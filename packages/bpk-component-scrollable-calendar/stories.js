@@ -34,13 +34,14 @@ import {
   ScrollableCalendarGrid,
   ScrollableCalendarGridList,
   PastCalendar,
-  RangeExample,
+  RangeExampleOutsideRender,
+  RangeExampleInsideRender,
   SplitWeekRangeExample,
 } from './examples';
 
 storiesOf('bpk-component-scrollable-calendar', module)
   .add('Scrollable Calendar - default', DefaultExample)
-  .add('Scrollable Calendar - range', RangeExample)
+  .add('Scrollable Calendar - range', RangeExampleOutsideRender)
   .add(
     'Scrollable Calendar - Week split across 2 months range',
     SplitWeekRangeExample,
@@ -59,4 +60,5 @@ storiesOf('bpk-component-scrollable-calendar', module)
   .add('BpkScrollableCalendarGrid', ScrollableCalendarGrid)
   .add('BpkScrollableCalendarGridList', ScrollableCalendarGridList)
   .add('Visual test', PastCalendar)
-  .add('Visual test range', RangeExample);
+  .add('Visual test range outside render', RangeExampleOutsideRender)
+  .add('Visual test range inside render', RangeExampleInsideRender);
