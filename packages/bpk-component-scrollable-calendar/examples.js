@@ -85,7 +85,7 @@ export default class ScrollableCal extends Component {
       // Sometimes we need use some props used in our composed calendar date, then it will cause problems.
       <div>
         <BpkScrollableCalendarDate {...props} />
-        <span>{this.props.outsideRender}</span>
+        <span>{this.props.outsideRender ? '' : 'test'}</span>
       </div>
     );
     const ScrollableCalendarInsideRender = withCalendarState(
